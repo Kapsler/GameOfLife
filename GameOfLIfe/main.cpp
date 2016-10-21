@@ -1,7 +1,7 @@
 #include "CommandLineParser.h"
 #include <iostream>
-#include "InputReader.h"
 #include "LifeSimulation.h"
+#include "ReaderWriter.h"
 
 using namespace std;
 
@@ -55,21 +55,22 @@ int main(int argc, char* argv[])
 
 	//Init stuff & Input
 	LifeSimulation* simulation = new LifeSimulation();
-	InputReader* reader = new InputReader(inputFilename, simulation->getBoardPtr());
+	ReaderWriter* readerwriter = new ReaderWriter(inputFilename, simulation->getBoardPtr());
 
 	//DebugOutput
 	//simulation->DebugOutput();
 
 	//Run
-	simulation->Run(1);
+	simulation->Run(generations);
 
 	//DebugOutput
 	//simulation->DebugOutput();
 
 	//Output
+	readerwriter->WriteToFile(outputFilename, simulation->getBoardPtr());
 
 	//Free Stuff
-	delete reader;
+	delete readerwriter;
 	delete simulation;
 
 	return 0;

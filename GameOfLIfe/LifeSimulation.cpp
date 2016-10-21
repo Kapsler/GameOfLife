@@ -29,8 +29,6 @@ void LifeSimulation::Run(int generations)
 		SimulateLifeIteration();
 		//SimulateLifeRecursion(0);
 	}
-
-
 }
 
 void LifeSimulation::SimulateLifeIteration()
@@ -57,7 +55,6 @@ void LifeSimulation::SimulateLifeIteration()
 			}
 		}
 	}
-
 
 }
 
@@ -133,55 +130,42 @@ const bool LifeSimulation::CheckCell(const int &line, const int &row) const
 
 const int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 {
-	std::vector<char> neighbors;
-
-	//cout << "Counting neighbors" << endl;
-
-	//int lineAbove = mod(line - 1, lines);
-	//int lineBelow = mod(line + 1, lines);
-	//int cellBefore = mod(cell - 1, rows);
-	//int cellAfter = mod(cell + 1, rows);
-
-	//cout << "Line Above: " << lineAbove << endl;
-	//cout << "Line Below: " << lineBelow << endl;
-	//cout << "Cell Before: " << cellBefore << endl;
-	//cout << "Cell After: " << cellAfter << endl;
+	int neighborcount = 0;
 
 	//X__
 	//___
 	//___
-	neighbors.push_back(board[mod(line - 1, lines)][mod(row - 1, rows)]);
+	if (board[mod(line - 1, lines)][mod(row - 1, rows)] == 'x') neighborcount++;
 	//_X_
 	//___
 	//___
-	neighbors.push_back(board[mod(line - 1, lines)][(row)%rows]);
+	if (board[mod(line - 1, lines)][(row) % rows] == 'x') neighborcount++;
 	//__X
 	//___
 	//___
-	neighbors.push_back(board[mod(line - 1, lines)][mod(row + 1, rows)]);
+	if (board[mod(line - 1, lines)][mod(row + 1, rows)] == 'x') neighborcount++;
 	//___
 	//X__
 	//___
-	neighbors.push_back(board[(line)%lines][mod(row - 1, rows)]);
+	if (board[(line) % lines][mod(row - 1, rows)] == 'x') neighborcount++;
 	//___
 	//__X
 	//___
-	neighbors.push_back(board[(line)%lines][mod(row + 1, rows)]);
+	if (board[(line) % lines][mod(row + 1, rows)] == 'x') neighborcount++;
 	//___
 	//___
 	//X__
-	neighbors.push_back(board[mod(line + 1, lines)][mod(row - 1, rows)]);
+	if (board[mod(line + 1, lines)][mod(row - 1, rows)] == 'x') neighborcount++;
 	//___
 	//___
 	//_X_
-	neighbors.push_back(board[mod(line + 1, lines)][(row)%rows]);
+	if (board[mod(line + 1, lines)][(row) % rows] == 'x') neighborcount++;
 	//___
 	//___
 	//__X
-	neighbors.push_back(board[mod(line + 1, lines)][mod(row + 1, rows)]);
+	if (board[mod(line + 1, lines)][mod(row + 1, rows)] == 'x') neighborcount++;
 
-	//std::cout << "Neighbors for cell " << line << " " << cell << " = " << neighborcount << endl;
-	return std::count(neighbors.begin(), neighbors.end(), 'x');
+	return neighborcount;
 }
 
 const int LifeSimulation::mod(const int& first, const int& second) const

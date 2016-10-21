@@ -153,12 +153,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CommandLineParser.cpp" />
-    <ClCompile Include="InputReader.cpp" />
+    <ClCompile Include="ReaderWriter.cpp" />
     <ClCompile Include="LifeSimulation.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="InputReader.h" />
+    <ClInclude Include="ReaderWriter.h" />
     <ClInclude Include="CommandLineParser.h" />
     <ClInclude Include="LifeSimulation.h" />
   </ItemGroup>

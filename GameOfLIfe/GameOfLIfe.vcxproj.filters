@@ -21,10 +21,10 @@
     <ClCompile Include="CommandLineParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InputReader.cpp">
+    <ClCompile Include="LifeSimulation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LifeSimulation.cpp">
+    <ClCompile Include="ReaderWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +32,10 @@
     <ClInclude Include="LifeSimulation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InputReader.h">
+    <ClInclude Include="CommandLineParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandLineParser.h">
+    <ClInclude Include="ReaderWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

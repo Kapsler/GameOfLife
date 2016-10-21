@@ -1,17 +1,44 @@
-#include "InputReader.h"
+#include "ReaderWriter.h"
 
-InputReader::InputReader(string inputFilename,
+ReaderWriter::ReaderWriter(string inputFilename,
 	vector<vector<char>> *board)
 {
 	readInputFile(inputFilename);
 	extractValuesFromContent(board);
 }
 
-InputReader::~InputReader()
+ReaderWriter::~ReaderWriter()
 {
 }
 
-void InputReader::extractValuesFromContent(vector<vector<char>> *board)
+void ReaderWriter::WriteToFile(string outputFilename, vector<vector<char>> *board)
+{
+	ofstream fileStream(outputFilename);
+
+	if (fileStream)
+	{
+		//Write
+		fileStream << (*board)[0].size() << ',' << board->size() << endl;
+
+		for(const auto &i : *board)
+		{
+			for(const auto &j : i)
+			{
+				fileStream << j;
+			}
+			fileStream << endl;
+		}
+
+		fileStream.close();
+
+	}
+	else
+	{
+		cerr << "Couldn't write to " << outputFilename << endl;
+	}
+}
+
+void ReaderWriter::extractValuesFromContent(vector<vector<char>> *board)
 {
 	char comma;
 
@@ -48,16 +75,17 @@ void InputReader::extractValuesFromContent(vector<vector<char>> *board)
 }
 
 
-void InputReader::readInputFile(string inputFilename)
+void ReaderWriter::readInputFile(string inputFilename)
 {
 	stringstream contentStream;
 	ifstream fileStream(inputFilename);
+
 	if(fileStream)
 	{
 		contentStream << fileStream.rdbuf();
-	fileStream.close();
+		fileStream.close();
 
-	content = contentStream.str();
+		content = contentStream.str();
 	} else
 	{
 		cerr << "Inputfile " << inputFilename << " not Found!" << endl;

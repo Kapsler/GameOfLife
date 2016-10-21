@@ -6,12 +6,14 @@
 
 using namespace std;
 
-class InputReader
+class ReaderWriter
 {
 public:
-	InputReader(string inputFilename,
+	ReaderWriter(string inputFilename,
 		vector<vector<char>> *board);
-	~InputReader();
+	~ReaderWriter();
+
+	static void WriteToFile(string outputFilename, vector<vector<char>> *board);
 
 	int numberOfLines, lineLength;
 private:
@@ -19,6 +21,5 @@ private:
 	void readInputFile(string inputFilename);
 
 	string content;
-	//vector<vector<char>> board;
 	vector<char> line;
 };
