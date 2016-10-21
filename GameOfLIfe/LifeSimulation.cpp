@@ -27,78 +27,35 @@ void LifeSimulation::Run(int generations)
 	for(auto i = 0; i < generations; ++i)
 	{
 		SimulateLifeIteration();
-		//SimulateLifeRecursion(0);
 	}
 }
 
 void LifeSimulation::SimulateLifeIteration()
 {
-	std::vector<std::vector<bool>> changes;
+	bool** changes = new bool*[lines];
+	for(int i = 0; i < lines; i++)
+	{
+		changes[i] = new bool[rows];
+	}
 
 	for (int i = 0; i < lines; ++i)
 	{
 		std::vector<bool> changeline;
 		for (int j = 0; j < rows; ++j)
 		{
-			changeline.push_back(CheckCell(i, j));
+			changes[i][j] = CheckCell(i, j);
 		}
-		changes.push_back(changeline);
+		
 	}
 
-	for(auto i = 0; i < changes.size(); ++i)
+	for(auto i = 0; i < lines; ++i)
 	{
-		for(auto j = 0; j < changes[0].size(); ++j)
+		for(auto j = 0; j < rows; ++j)
 		{
 			if(changes[i][j])
 			{
 				ToggleCell(i, j);
 			}
-		}
-	}
-
-}
-
-void LifeSimulation::SimulateLifeRecursion(int cell)
-{
-
-	bool changed = false;
-	char* current = &board[cell / rows][cell%rows];
-	int neighbors = CountNeighbors(cell / rows, cell%rows);
-
-	//Alive
-	if (*current == 'x')
-	{
-		if(neighbors >= 4 || neighbors <= 1)
-		{
-			changed = true;
-		}
-	}
-	//Dead
-	else
-	{
-		if (neighbors == 3)
-		{
-			changed = true;
-		}
-	}
-
-	//Recursion
-	if((cell + 1) / rows < lines)
-	{
-		SimulateLifeRecursion(cell + 1);
-	}
-
-	//Change of state
-	if(changed)
-	{
-		//cout << "Changed cell: " << currentLine << " " << cellIndex << endl;
-		if (*current == 'x') 
-		{
-			*current = '.';
-		}
-		else
-		{
-			*current = 'x';
 		}
 	}
 

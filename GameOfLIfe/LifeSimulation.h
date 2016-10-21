@@ -14,7 +14,6 @@ public:
 
 	void Run(int generations);
 	void SimulateLifeIteration();
-	void SimulateLifeRecursion(int cell);
 	const bool CheckCell(const int &line, const int &row) const;
 	void DebugOutput();
 
