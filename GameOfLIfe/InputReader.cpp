@@ -1,21 +1,17 @@
 #include "InputReader.h"
 
-InputReader::InputReader(string inputFilename)
+InputReader::InputReader(string inputFilename,
+	vector<vector<char>> *board)
 {
 	readInputFile(inputFilename);
-	extractValuesFromContent();
+	extractValuesFromContent(board);
 }
 
 InputReader::~InputReader()
 {
 }
 
-vector<vector<bool>> InputReader::getBoard()
-{
-	return board;
-}
-
-void InputReader::extractValuesFromContent()
+void InputReader::extractValuesFromContent(vector<vector<char>> *board)
 {
 	char comma;
 
@@ -32,13 +28,14 @@ void InputReader::extractValuesFromContent()
 	{
 		if(buffer == '.')
 		{
-			line.push_back(false);
+			line.push_back('.');
 		} else if(buffer == 'x')
 		{
-			line.push_back(true);
+			line.push_back('x');
 		} else if(buffer == '\n')
 		{
-			board.push_back(line);
+			board->push_back(line);
+			line.clear();
 		}
 
 		buffer = contentStream.get();
@@ -46,7 +43,7 @@ void InputReader::extractValuesFromContent()
 
 	cout << numberOfLines << endl;
 	cout << lineLength << endl;
-	cout << board.size() << endl;
+	cout << board->size() << endl;
 	cout << board[0].size() << endl;
 }
 

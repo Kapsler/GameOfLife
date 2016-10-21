@@ -24,6 +24,9 @@
     <ClCompile Include="InputReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LifeSimulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LifeSimulation.h">

@@ -9,17 +9,16 @@ using namespace std;
 class InputReader
 {
 public:
-	InputReader(string inputFilename);
+	InputReader(string inputFilename,
+		vector<vector<char>> *board);
 	~InputReader();
-
-	vector<vector<bool>> getBoard();
 
 	int numberOfLines, lineLength;
 private:
-	void extractValuesFromContent();
+	void extractValuesFromContent(vector<vector<char>> *board);
 	void readInputFile(string inputFilename);
 
 	string content;
-	vector<vector<bool>> board;
-	vector<bool> line;
+	//vector<vector<char>> board;
+	vector<char> line;
 };
