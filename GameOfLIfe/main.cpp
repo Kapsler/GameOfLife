@@ -2,6 +2,7 @@
 #include <iostream>
 #include "LifeSimulation.h"
 #include "ReaderWriter.h"
+#include "TimerClass.h"
 
 using namespace std;
 
@@ -53,25 +54,36 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	//Init stuff & Input
+	//Init stuff
+	TimerClass* timer = new TimerClass();
 	LifeSimulation* simulation = new LifeSimulation();
+
+	//Read Input
+	timer->StartTimer();
 	ReaderWriter* readerwriter = new ReaderWriter(inputFilename, simulation->getBoardPtr());
+	cout << "Reading from File took " << timer->GetTime() << " seconds." << endl;
+
 
 	//DebugOutput
 	//simulation->DebugOutput();
 
 	//Run
+	timer->StartTimer();
 	simulation->Run(generations);
+	cout << "Running " << generations << " generations took " << timer->GetTime() << " seconds." << endl;
 
 	//DebugOutput
 	//simulation->DebugOutput();
 
 	//Output
+	timer->StartTimer();
 	readerwriter->WriteToFile(outputFilename, simulation->getBoardPtr());
+	cout << "Writing to File took " << timer->GetTime() << " seconds." << endl;
 
 	//Free Stuff
 	delete readerwriter;
 	delete simulation;
+	delete timer;
 
 	return 0;
 }

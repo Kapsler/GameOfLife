@@ -156,11 +156,13 @@
     <ClCompile Include="ReaderWriter.cpp" />
     <ClCompile Include="LifeSimulation.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TimerClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ReaderWriter.h" />
     <ClInclude Include="CommandLineParser.h" />
     <ClInclude Include="LifeSimulation.h" />
+    <ClInclude Include="TimerClass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

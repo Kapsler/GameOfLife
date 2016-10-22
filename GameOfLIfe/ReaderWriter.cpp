@@ -68,10 +68,10 @@ void ReaderWriter::extractValuesFromContent(vector<vector<char>> *board)
 		buffer = contentStream.get();
 	}
 
-	cout << numberOfLines << endl;
-	cout << lineLength << endl;
-	cout << board->size() << endl;
-	cout << board[0].size() << endl;
+	//cout << numberOfLines << endl;
+	//cout << lineLength << endl;
+	//cout << board->size() << endl;
+	//cout << board[0].size() << endl;
 }
 
 
