@@ -24,5 +24,6 @@ private:
 
 	vector<vector<char>> board;
 	int lines, rows;
+	bool** changes;
 
 };

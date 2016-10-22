@@ -24,18 +24,31 @@ void LifeSimulation::Run(int generations)
 	cout << "Lines: " << lines << endl;
 	cout << "Rows: " << rows << endl;
 
+	//Initialize helping array
+	changes = new bool*[lines];
+	for (int i = 0; i < lines; i++)
+	{
+		changes[i] = new bool[rows];
+	}
+
 	for(auto i = 0; i < generations; ++i)
 	{
 		SimulateLifeIteration();
 	}
+
+	//Free helping array
+	for (int i = 0; i < lines; i++)
+	{
+		delete[] changes[i];
+	}
+	delete[] changes;
 }
 
 void LifeSimulation::SimulateLifeIteration()
 {
-	bool** changes = new bool*[lines];
-	for(int i = 0; i < lines; i++)
+	for (int i = 0; i < lines; i++)
 	{
-		changes[i] = new bool[rows];
+		fill(changes[i], changes[i]+rows-1, false) ;
 	}
 
 	for (int i = 0; i < lines; ++i)
