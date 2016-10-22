@@ -4,6 +4,7 @@ LifeSimulation::LifeSimulation()
 {
 	lines = 0;
 	rows = 0;
+	changes = nullptr;
 }
 
 LifeSimulation::~LifeSimulation()
@@ -74,7 +75,7 @@ void LifeSimulation::SimulateLifeIteration()
 
 }
 
-const bool LifeSimulation::CheckCell(const int &line, const int &row) const
+bool LifeSimulation::CheckCell(const int &line, const int &row) const
 {
 	const int neighbors = CountNeighbors(line, row);
 
@@ -98,49 +99,72 @@ const bool LifeSimulation::CheckCell(const int &line, const int &row) const
 	return false;
 }
 
-const int LifeSimulation::CountNeighbors(const int &line, const int &row) const
+int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 {
 	int neighborcount = 0;
+	int lineafter = line + 1;
+	int linebefore = line - 1;
+	int rowafter = row + 1;
+	int rowbefore = row - 1;
+
+
+	if(rowafter >= rows)
+	{
+		rowafter = mod(row + 1, rows);
+	}
+	if(rowbefore < 0)
+	{
+		rowbefore = mod(row - 1, rows);
+	}
+	if(lineafter >= lines)
+	{
+		lineafter = mod(line + 1, lines);
+	}
+	if(linebefore < 0)
+	{
+		linebefore = mod(line - 1, lines);
+	}
 
 	//X__
 	//___
 	//___
-	if (board[mod(line - 1, lines)][mod(row - 1, rows)] == 'x') neighborcount++;
+	if (board[linebefore][rowbefore] == 'x') neighborcount++;
 	//_X_
 	//___
 	//___
-	if (board[mod(line - 1, lines)][(row) % rows] == 'x') neighborcount++;
+	if (board[linebefore][row] == 'x') neighborcount++;
 	//__X
 	//___
 	//___
-	if (board[mod(line - 1, lines)][mod(row + 1, rows)] == 'x') neighborcount++;
+	if (board[linebefore][rowafter] == 'x') neighborcount++;
 	//___
 	//X__
 	//___
-	if (board[(line) % lines][mod(row - 1, rows)] == 'x') neighborcount++;
+	if (board[line][rowbefore] == 'x') neighborcount++;
 	//___
 	//__X
 	//___
-	if (board[(line) % lines][mod(row + 1, rows)] == 'x') neighborcount++;
+	if (board[line][rowafter] == 'x') neighborcount++;
 	//___
 	//___
 	//X__
-	if (board[mod(line + 1, lines)][mod(row - 1, rows)] == 'x') neighborcount++;
+	if (board[lineafter][rowbefore] == 'x') neighborcount++;
 	//___
 	//___
 	//_X_
-	if (board[mod(line + 1, lines)][(row) % rows] == 'x') neighborcount++;
+	if (board[lineafter][row] == 'x') neighborcount++;
 	//___
 	//___
 	//__X
-	if (board[mod(line + 1, lines)][mod(row + 1, rows)] == 'x') neighborcount++;
+	if (board[lineafter][rowafter] == 'x') neighborcount++;
 
 	return neighborcount;
 }
 
-const int LifeSimulation::mod(const int& first, const int& second) const
+int inline LifeSimulation::mod(int first, const int& second) const
 {
-	return (first%second + second) % second;
+	//return (first%second + second) % second;
+	return ((first %= second) < 0) ? first + second : first;
 }
 
 void LifeSimulation::ToggleCell(const int& line, const int& row)
