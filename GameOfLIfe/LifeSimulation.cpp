@@ -22,9 +22,6 @@ void LifeSimulation::Run(int generations)
 	lines = board.size();
 	rows = board[0].size();
 
-	cout << "Lines: " << lines << endl;
-	cout << "Rows: " << rows << endl;
-
 	//Initialize helping array
 	changes = new bool*[lines];
 	for (int i = 0; i < lines; i++)

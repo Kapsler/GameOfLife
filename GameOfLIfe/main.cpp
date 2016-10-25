@@ -6,8 +6,9 @@
 
 using namespace std;
 
-string inputFilename, outputFilename;
+string inputFilename, outputFilename, time1, time2, time3;
 int generations;
+bool measure;
 
 bool handleParameters(int argc, char* argv[])
 {
@@ -43,6 +44,15 @@ bool handleParameters(int argc, char* argv[])
 		return false;
 	}
 
+	if (input.cmdOptionExists("--measure"))
+	{
+		measure = true;;
+	}
+	else
+	{
+		measure = false;
+	}
+
 	return true;
 }
 
@@ -61,7 +71,7 @@ int main(int argc, char* argv[])
 	//Read Input
 	timer->StartTimer();
 	ReaderWriter* readerwriter = new ReaderWriter(inputFilename, simulation->getBoardPtr());
-	cout << "Reading from File took " << timer->GetTime() << " seconds." << endl;
+	time1 = timer->GetFormattedDuration("");
 
 
 	//DebugOutput
@@ -70,7 +80,7 @@ int main(int argc, char* argv[])
 	//Run
 	timer->StartTimer();
 	simulation->Run(generations);
-	cout << "Running " << generations << " generations took " << timer->GetTime() << " seconds." << endl;
+	time2 = timer->GetFormattedDuration("");
 
 	//DebugOutput
 	//simulation->DebugOutput();
@@ -78,12 +88,14 @@ int main(int argc, char* argv[])
 	//Output
 	timer->StartTimer();
 	readerwriter->WriteToFile(outputFilename, simulation->getBoardPtr());
-	cout << "Writing to File took " << timer->GetTime() << " seconds." << endl;
 
 	//Free Stuff
 	delete readerwriter;
 	delete simulation;
 	delete timer;
+	time3 = timer->GetFormattedDuration("");
+
+	if (measure) cout << time1 << " " << time2 << " " << time3 << endl;
 
 	return 0;
 }
