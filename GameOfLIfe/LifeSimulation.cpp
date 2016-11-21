@@ -31,7 +31,8 @@ void LifeSimulation::Run(int generations)
 
 	for(auto i = 0; i < generations; ++i)
 	{
-		SimulateLifeIteration();
+		//SimulateLifeIteration();
+		SimulateLifeOMP();
 	}
 
 	//Free helping array
@@ -66,6 +67,41 @@ void LifeSimulation::SimulateLifeIteration()
 			if(changes[i][j])
 			{
 				ToggleCell(i, j);
+			}
+		}
+	}
+
+}
+
+void LifeSimulation::SimulateLifeOMP()
+{
+	#pragma omp parallel num_threads(16)
+	{
+		#pragma omp for
+		for (auto i = 0; i < lines; i++)
+		{
+			fill(changes[i], changes[i] + rows - 1, false);
+		}
+
+		#pragma omp for
+		for (auto i = 0; i < lines; ++i)
+		{
+			for (auto j = 0; j < rows; ++j)
+			{
+				changes[i][j] = CheckCell(i, j);
+			}
+
+		}
+
+		#pragma omp for
+		for (auto i = 0; i < lines; ++i)
+		{
+			for (auto j = 0; j < rows; ++j)
+			{
+				if (changes[i][j])
+				{
+					ToggleCell(i, j);
+				}
 			}
 		}
 	}
