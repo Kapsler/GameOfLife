@@ -75,7 +75,7 @@ void LifeSimulation::SimulateLifeIteration()
 
 void LifeSimulation::SimulateLifeOMP()
 {
-	#pragma omp parallel num_threads(16)
+	#pragma omp parallel num_threads(4)
 	{
 		#pragma omp for
 		for (auto i = 0; i < lines; i++)
@@ -143,19 +143,23 @@ int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 
 	if(rowafter >= rows)
 	{
-		rowafter = mod(row + 1, rows);
+		//rowafter = mod(row + 1, rows);
+		rowafter = 0;
 	}
 	if(rowbefore < 0)
 	{
-		rowbefore = mod(row - 1, rows);
+		//rowbefore = mod(row - 1, rows);
+		rowbefore = rows - 1;
 	}
 	if(lineafter >= lines)
 	{
-		lineafter = mod(line + 1, lines);
+		//lineafter = mod(line + 1, lines);
+		lineafter = 0;
 	}
 	if(linebefore < 0)
 	{
-		linebefore = mod(line - 1, lines);
+		//linebefore = mod(line - 1, lines);
+		linebefore = lines - 1;
 	}
 
 	//X__
