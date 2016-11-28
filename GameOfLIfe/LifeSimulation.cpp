@@ -4,116 +4,161 @@ LifeSimulation::LifeSimulation()
 {
 	lines = 0;
 	rows = 0;
-	changes = nullptr;
+	//changes = nullptr;
 }
 
 LifeSimulation::~LifeSimulation()
 {
 }
 
-vector<vector<char>>* LifeSimulation::getBoardPtr()
+vector<char>* LifeSimulation::getBoardPtr()
 {
-	return &board;
+	return &board1d;
+}
+
+int* LifeSimulation::GetLinesPtr()
+{
+	return &lines;
+}
+
+int* LifeSimulation::GetRowsPtr()
+{	
+	return &rows;
 }
 
 void LifeSimulation::Run(int generations)
 {
-
-	lines = board.size();
-	rows = board[0].size();
-
-	//Initialize helping array
-	changes = new bool*[lines];
-	for (int i = 0; i < lines; i++)
-	{
-		changes[i] = new bool[rows];
-	}
+	changes1d = new bool[board1d.size()];
 
 	for(auto i = 0; i < generations; ++i)
 	{
-		//SimulateLifeIteration();
-		SimulateLifeOMP();
+		SimulateLife1D();
 	}
 
-	//Free helping array
-	for (int i = 0; i < lines; i++)
-	{
-		delete[] changes[i];
-	}
-	delete[] changes;
-}
+	delete[] changes1d;
 
-void LifeSimulation::SimulateLifeIteration()
+  }
+
+//void LifeSimulation::SimulateLifeIteration()
+//{
+//	for (int i = 0; i < lines; i++)
+//	{
+//		fill(changes[i], changes[i]+rows-1, false) ;
+//	}
+//
+//	for (int i = 0; i < lines; ++i)
+//	{
+//		std::vector<bool> changeline;
+//		for (int j = 0; j < rows; ++j)
+//		{
+//			changes[i][j] = CheckCell(i, j);
+//		}
+//		
+//	}
+//
+//	for(auto i = 0; i < lines; ++i)
+//	{
+//		for(auto j = 0; j < rows; ++j)
+//		{
+//			if(changes[i][j])
+//			{
+//				ToggleCell(i, j);
+//			}
+//		}
+//	}
+//
+//}
+//
+//void LifeSimulation::SimulateLifeOMP()
+//{
+//	#pragma omp parallel num_threads(4)
+//	{
+//		#pragma omp for
+//		for (auto i = 0; i < lines; i++)
+//		{
+//			fill(changes[i], changes[i] + rows - 1, false);
+//		}
+//
+//		#pragma omp for
+//		for (auto i = 0; i < lines; ++i)
+//		{
+//			for (auto j = 0; j < rows; ++j)
+//			{
+//				changes[i][j] = CheckCell(i, j);
+//			}
+//
+//		}
+//
+//		#pragma omp for
+//		for (auto i = 0; i < lines; ++i)
+//		{
+//			for (auto j = 0; j < rows; ++j)
+//			{
+//				if (changes[i][j])
+//				{
+//					ToggleCell(i, j);
+//				}
+//			}
+//		}
+//	}
+//
+//}
+
+void LifeSimulation::SimulateLife1D()
 {
-	for (int i = 0; i < lines; i++)
-	{
-		fill(changes[i], changes[i]+rows-1, false) ;
-	}
 
-	for (int i = 0; i < lines; ++i)
+	fill(changes1d, changes1d + sizeof(changes1d), false);
+
+	for (auto i = 0; i < lines; ++i)
 	{
-		std::vector<bool> changeline;
-		for (int j = 0; j < rows; ++j)
+		for (auto j = 0; j < rows; ++j)
 		{
-			changes[i][j] = CheckCell(i, j);
+			changes1d[i * rows + j] = CheckCell1D(i, j);
 		}
-		
+
 	}
 
-	for(auto i = 0; i < lines; ++i)
+	for (auto i = 0; i < lines; ++i)
 	{
-		for(auto j = 0; j < rows; ++j)
+		for (auto j = 0; j < rows; ++j)
 		{
-			if(changes[i][j])
+			if (changes1d[i * rows + j])
 			{
-				ToggleCell(i, j);
+				ToggleCell1D(i, j);
 			}
 		}
 	}
-
 }
+//bool LifeSimulation::CheckCell(const int &line, const int &row) const
+//{
+//	const int neighbors = CountNeighbors(line, row);
+//
+//	//Alive
+//	if (board[line][row] == 'x')
+//	{
+//		if (neighbors >= 4 || neighbors <= 1)
+//		{
+//			return true;
+//		}
+//	}
+//	//Dead
+//	else
+//	{
+//		if (neighbors == 3)
+//		{
+//			return true;
+//		}
+//	}
+//
+//	return false;
+//}
 
-void LifeSimulation::SimulateLifeOMP()
+bool LifeSimulation::CheckCell1D(const int& line, const int& row) const
 {
-	#pragma omp parallel num_threads(4)
-	{
-		#pragma omp for
-		for (auto i = 0; i < lines; i++)
-		{
-			fill(changes[i], changes[i] + rows - 1, false);
-		}
-
-		#pragma omp for
-		for (auto i = 0; i < lines; ++i)
-		{
-			for (auto j = 0; j < rows; ++j)
-			{
-				changes[i][j] = CheckCell(i, j);
-			}
-
-		}
-
-		#pragma omp for
-		for (auto i = 0; i < lines; ++i)
-		{
-			for (auto j = 0; j < rows; ++j)
-			{
-				if (changes[i][j])
-				{
-					ToggleCell(i, j);
-				}
-			}
-		}
-	}
-
-}
-
-bool LifeSimulation::CheckCell(const int &line, const int &row) const
-{
-	const int neighbors = CountNeighbors(line, row);
+	const int neighbors = CountNeighbors1D(line, row);
 
 	//Alive
-	if (board[line][row] == 'x')
+	if (board1d[line * rows + row] == 'x')
 	{
 		if (neighbors >= 4 || neighbors <= 1)
 		{
@@ -132,7 +177,7 @@ bool LifeSimulation::CheckCell(const int &line, const int &row) const
 	return false;
 }
 
-int LifeSimulation::CountNeighbors(const int &line, const int &row) const
+int LifeSimulation::CountNeighbors1D(const int& line, const int& row) const
 {
 	int neighborcount = 0;
 	int lineafter = line + 1;
@@ -141,22 +186,22 @@ int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 	int rowbefore = row - 1;
 
 
-	if(rowafter >= rows)
+	if (rowafter >= rows)
 	{
 		//rowafter = mod(row + 1, rows);
 		rowafter = 0;
 	}
-	if(rowbefore < 0)
+	if (rowbefore < 0)
 	{
 		//rowbefore = mod(row - 1, rows);
 		rowbefore = rows - 1;
 	}
-	if(lineafter >= lines)
+	if (lineafter >= lines)
 	{
 		//lineafter = mod(line + 1, lines);
 		lineafter = 0;
 	}
-	if(linebefore < 0)
+	if (linebefore < 0)
 	{
 		//linebefore = mod(line - 1, lines);
 		linebefore = lines - 1;
@@ -165,65 +210,67 @@ int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 	//X__
 	//___
 	//___
-	if (board[linebefore][rowbefore] == 'x') neighborcount++;
+	if (board1d[linebefore * rows + rowbefore] == 'x') neighborcount++;
 	//_X_
 	//___
 	//___
-	if (board[linebefore][row] == 'x') neighborcount++;
+	if (board1d[linebefore * rows + row] == 'x') neighborcount++;
 	//__X
 	//___
 	//___
-	if (board[linebefore][rowafter] == 'x') neighborcount++;
+	if (board1d[linebefore * rows + rowafter] == 'x') neighborcount++;
 	//___
 	//X__
 	//___
-	if (board[line][rowbefore] == 'x') neighborcount++;
+	if (board1d[line * rows + rowbefore] == 'x') neighborcount++;
 	//___
 	//__X
 	//___
-	if (board[line][rowafter] == 'x') neighborcount++;
+	if (board1d[line * rows + rowafter] == 'x') neighborcount++;
 	//___
 	//___
 	//X__
-	if (board[lineafter][rowbefore] == 'x') neighborcount++;
+	if (board1d[lineafter * rows + rowbefore] == 'x') neighborcount++;
 	//___
 	//___
 	//_X_
-	if (board[lineafter][row] == 'x') neighborcount++;
+	if (board1d[lineafter * rows + row] == 'x') neighborcount++;
 	//___
 	//___
 	//__X
-	if (board[lineafter][rowafter] == 'x') neighborcount++;
+	if (board1d[lineafter * rows + rowafter] == 'x') neighborcount++;
 
 	return neighborcount;
 }
 
-int inline LifeSimulation::mod(int first, const int& second) const
+void LifeSimulation::ToggleCell1D(const int& line, const int& row)
 {
-	//return (first%second + second) % second;
-	return ((first %= second) < 0) ? first + second : first;
-}
-
-void LifeSimulation::ToggleCell(const int& line, const int& row)
-{
-	if (board[line][row] == 'x')
+	if (board1d[line * rows + row] == 'x')
 	{
-		board[line][row] = '.';
-	} else
+		board1d[line * rows + row] = '.';
+	}
+	else
 	{
-		board[line][row] = 'x';
+		board1d[line * rows + row] = 'x';
 	}
 }
 
 void LifeSimulation::DebugOutput()
 {
-	for(const auto &i : board)
-	{
-		for(const auto & j : i)
-		{
-			std::cout << j;
-		}
+	int counter = 0;
 
-		std::cout << endl;
+	for(const auto &i : board1d)
+	{
+		std::cout << i;
+		
+		counter++;
+
+		if(counter >= rows)
+		{
+			counter = 0;
+			cout << endl;
+		}
 	}
+
+	std::cout << endl;
 }

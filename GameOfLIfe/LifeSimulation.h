@@ -10,20 +10,22 @@ public:
 	LifeSimulation();
 	~LifeSimulation();
 
-	vector<vector<char>>* getBoardPtr();
+	vector<char>* getBoardPtr();
+	int* GetLinesPtr();
+	int* GetRowsPtr();
 
 	void Run(int generations);
-	void SimulateLifeIteration();
-	void SimulateLifeOMP();
-	bool CheckCell(const int &line, const int &row) const;
 	void DebugOutput();
 
+	//1D
+	void SimulateLife1D();
+	bool CheckCell1D(const int &line, const int &row) const;
 private:
-	int inline CountNeighbors(const int &line, const int &row) const;
-	int inline mod(int first, const int &second) const;
-	void inline ToggleCell(const int &line, const int &row);
+	//1D
+	int inline CountNeighbors1D(const int &line, const int &row) const;
+	void inline ToggleCell1D(const int &line, const int &row);
 
-	vector<vector<char>> board;
+	vector<char> board1d;
 	int lines, rows;
-	bool** changes;
+	bool* changes1d;
 };

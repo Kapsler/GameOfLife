@@ -10,16 +10,17 @@ class ReaderWriter
 {
 public:
 	ReaderWriter(string inputFilename,
-		vector<vector<char>> *board);
+		vector<char> *board, int* linesptr, int* rowsptr);
 	~ReaderWriter();
 
-	static void WriteToFile(string outputFilename, vector<vector<char>> *board);
+	void WriteToFile(string outputFilename, vector<char> *board);
 
-	int numberOfLines, lineLength;
 private:
-	void extractValuesFromContent(vector<vector<char>> *board);
+	void extractValuesFromContent(vector<char> *board);
 	void readInputFile(string inputFilename);
 
 	string content;
-	vector<char> line;
+
+	int *lines, *rows;
+
 };
