@@ -13,10 +13,10 @@ public:
 		vector<char> *board, int* linesptr, int* rowsptr);
 	~ReaderWriter();
 
-	void WriteToFile(string outputFilename, vector<char> *board);
+	void WriteToFile(string outputFilename, vector<char> *board) const;
 
 private:
-	void extractValuesFromContent(vector<char> *board);
+	void extractValuesFromContent(vector<char> *board) const;
 	void readInputFile(string inputFilename);
 
 	string content;

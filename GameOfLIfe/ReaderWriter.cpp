@@ -14,7 +14,7 @@ ReaderWriter::~ReaderWriter()
 {
 }
 
-void ReaderWriter::WriteToFile(string outputFilename, vector<char> *board)
+void ReaderWriter::WriteToFile(string outputFilename, vector<char> *board) const
 {
 	ofstream fileStream(outputFilename);
 
@@ -46,7 +46,7 @@ void ReaderWriter::WriteToFile(string outputFilename, vector<char> *board)
 	}
 }
 
-void ReaderWriter::extractValuesFromContent(vector<char> *board)
+void ReaderWriter::extractValuesFromContent(vector<char> *board) const
 {
 	char comma;
 
@@ -68,9 +68,6 @@ void ReaderWriter::extractValuesFromContent(vector<char> *board)
 
 		buffer = contentStream.get();
 	}
-
-	cout << *lines << endl;
-	cout << *rows << endl;
 }
 
 

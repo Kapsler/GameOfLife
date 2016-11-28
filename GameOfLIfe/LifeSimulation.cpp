@@ -32,7 +32,7 @@ void LifeSimulation::Run(int generations)
 
 	for(auto i = 0; i < generations; ++i)
 	{
-		SimulateLife1D();
+		SimulateLifeIteration();
 	}
 
 	delete[] changes1d;
@@ -104,7 +104,7 @@ void LifeSimulation::Run(int generations)
 //
 //}
 
-void LifeSimulation::SimulateLife1D()
+void LifeSimulation::SimulateLifeIteration()
 {
 
 	fill(changes1d, changes1d + sizeof(changes1d), false);
@@ -113,7 +113,7 @@ void LifeSimulation::SimulateLife1D()
 	{
 		for (auto j = 0; j < rows; ++j)
 		{
-			changes1d[i * rows + j] = CheckCell1D(i, j);
+			changes1d[i * rows + j] = CheckCell(i, j);
 		}
 
 	}
@@ -124,7 +124,7 @@ void LifeSimulation::SimulateLife1D()
 		{
 			if (changes1d[i * rows + j])
 			{
-				ToggleCell1D(i, j);
+				ToggleCell(i, j);
 			}
 		}
 	}
@@ -153,9 +153,9 @@ void LifeSimulation::SimulateLife1D()
 //	return false;
 //}
 
-bool LifeSimulation::CheckCell1D(const int& line, const int& row) const
+bool LifeSimulation::CheckCell(const int& line, const int& row) const
 {
-	const int neighbors = CountNeighbors1D(line, row);
+	const int neighbors = CountNeighbors(line, row);
 
 	//Alive
 	if (board1d[line * rows + row] == 'x')
@@ -177,7 +177,7 @@ bool LifeSimulation::CheckCell1D(const int& line, const int& row) const
 	return false;
 }
 
-int LifeSimulation::CountNeighbors1D(const int& line, const int& row) const
+int LifeSimulation::CountNeighbors(const int& line, const int& row) const
 {
 	int neighborcount = 0;
 	int lineafter = line + 1;
@@ -243,7 +243,7 @@ int LifeSimulation::CountNeighbors1D(const int& line, const int& row) const
 	return neighborcount;
 }
 
-void LifeSimulation::ToggleCell1D(const int& line, const int& row)
+void LifeSimulation::ToggleCell(const int& line, const int& row)
 {
 	if (board1d[line * rows + row] == 'x')
 	{

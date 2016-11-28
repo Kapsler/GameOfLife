@@ -18,12 +18,12 @@ public:
 	void DebugOutput();
 
 	//1D
-	void SimulateLife1D();
-	bool CheckCell1D(const int &line, const int &row) const;
+	void SimulateLifeIteration();
+	bool CheckCell(const int &line, const int &row) const;
 private:
 	//1D
-	int inline CountNeighbors1D(const int &line, const int &row) const;
-	void inline ToggleCell1D(const int &line, const int &row);
+	int inline CountNeighbors(const int &line, const int &row) const;
+	void inline ToggleCell(const int &line, const int &row);
 
 	vector<char> board1d;
 	int lines, rows;
