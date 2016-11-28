@@ -1,0 +1,86 @@
+void kernel simulatelife(global char* input, global const int* totalrows, global const int* totallines, global char* output){
+	
+	int line = get_global_id(0);
+	int row = get_global_id(1);
+	int rows = *totalrows;
+	int lines = *totallines;
+
+	int neighborcount = 0;
+	int lineafter = line + 1;
+	int linebefore = line - 1;
+	int rowafter = row + 1;
+	int rowbefore = row - 1;
+
+
+	if (rowafter >= rows)
+	{
+		rowafter = 0;
+	}
+	if (rowbefore < 0)
+	{
+		rowbefore = rows - 1;
+	}
+	if (lineafter >= lines)
+	{
+		lineafter = 0;
+	}
+	if (linebefore < 0)
+	{
+		linebefore = lines - 1;
+	}
+
+	//X__
+	//___
+	//___
+	if (input[linebefore * rows + rowbefore] == 'x') neighborcount++;
+	//_X_
+	//___
+	//___
+	if (input[linebefore * rows + row] == 'x') neighborcount++;
+	//__X
+	//___
+	//___
+	if (input[linebefore * rows + rowafter] == 'x') neighborcount++;
+	//___
+	//X__
+	//___
+	if (input[line * rows + rowbefore] == 'x') neighborcount++;
+	//___
+	//__X
+	//___
+	if (input[line * rows + rowafter] == 'x') neighborcount++;
+	//___
+	//___
+	//X__
+	if (input[lineafter * rows + rowbefore] == 'x') neighborcount++;
+	//___
+	//___
+	//_X_
+	if (input[lineafter * rows + row] == 'x') neighborcount++;
+	//___
+	//___
+	//__X
+	if (input[lineafter * rows + rowafter] == 'x') neighborcount++;
+
+	
+	//Alive
+	if (input[line * rows + row] == 'x')
+	{
+		if (neighborcount >= 4 || neighborcount <= 1)
+		{
+			output[line * rows + row] = '.';
+		}
+
+		output[line * rows + row] = 'x';
+	}
+	//Dead
+	else
+	{
+		if (neighborcount == 3)
+		{
+			output[line * rows + row] = 'x';
+		}
+
+		output[line * rows + row] = '.';
+	}
+}

@@ -29,7 +29,7 @@ int* LifeSimulation::GetRowsPtr()
 string LifeSimulation::Run(int generations, std::string mode)
 {
 	string time = "";
-	changes = new bool[board.size()];
+	changes = new char[board.size()];
 
 	if (mode == "seq")
 	{
@@ -50,14 +50,18 @@ string LifeSimulation::Run(int generations, std::string mode)
 		
 	} else if(mode == "ocl")
 	{
-		InitOCL();
 
 		timer.StartTimer();
+		InitOCL();
 
 		for (auto i = 0; i < generations; ++i)
 		{
 			SimulateLifeOCL();
 		}
+
+		queue_simulation.enqueueReadBuffer(output, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
+		queue_simulation.finish();
+
 		time = timer.GetFormattedDuration("");
 	} else
 	{
@@ -72,8 +76,6 @@ string LifeSimulation::Run(int generations, std::string mode)
 
 void LifeSimulation::SimulateLifeOMP()
 {
-	fill(changes, changes + sizeof(changes), false);
-
 	#pragma omp parallel num_threads(4)
 	{
 		#pragma omp for
@@ -91,11 +93,9 @@ void LifeSimulation::SimulateLifeOMP()
 		{
 			for (auto j = 0; j < rows; ++j)
 			{
-				if (changes[i * rows + j])
-				{
-					ToggleCell(i, j);
-				}
+				board[i * rows + j] = changes[i * rows + j];
 			}
+
 		}
 
 	}
@@ -104,8 +104,6 @@ void LifeSimulation::SimulateLifeOMP()
 
 void LifeSimulation::SimulateLifeIteration()
 {
-
-	fill(changes, changes + sizeof(changes), false);
 
 	for (auto i = 0; i < lines; ++i)
 	{
@@ -120,20 +118,27 @@ void LifeSimulation::SimulateLifeIteration()
 	{
 		for (auto j = 0; j < rows; ++j)
 		{
-			if (changes[i * rows + j])
-			{
-				ToggleCell(i, j);
-			}
+			board[i * rows + j] = changes[i * rows + j];
 		}
+
 	}
 }
 
 void LifeSimulation::SimulateLifeOCL()
 {
-	
+	if(queue_simulation.enqueueNDRangeKernel(kernel_simulation, cl::NullRange, cl::NDRange(lines, rows), cl::NullRange) != CL_SUCCESS)
+	{
+		cout << "ERROR!" << endl;
+	};
+	queue_simulation.enqueueCopyBuffer(output, input, 0, 0, sizeof(char)*board.size());
+	//queue_simulation.enqueueReadBuffer(output, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
+	//queue_simulation.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
+	queue_simulation.finish();
+	//std::swap(input, output);
+
 }
 
-bool LifeSimulation::CheckCell(const int& line, const int& row) const
+char LifeSimulation::CheckCell(const int& line, const int& row) const
 {
 	const int neighbors = CountNeighbors(line, row);
 
@@ -142,19 +147,22 @@ bool LifeSimulation::CheckCell(const int& line, const int& row) const
 	{
 		if (neighbors >= 4 || neighbors <= 1)
 		{
-			return true;
+			return '.';
 		}
+
+		return 'x';
 	}
 	//Dead
 	else
 	{
 		if (neighbors == 3)
 		{
-			return true;
+			return 'x';
 		}
+
+		return '.';
 	}
 
-	return false;
 }
 
 int LifeSimulation::CountNeighbors(const int& line, const int& row) const
@@ -246,7 +254,7 @@ void LifeSimulation::InitOCL()
 	}
 
 	//TODO Needs device parameter!
-	cl::Platform default_platform = all_platforms[0];
+	cl::Platform default_platform = all_platforms[1];
 	std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME>() << endl;
 
 	//get default device of the default platform
@@ -263,10 +271,7 @@ void LifeSimulation::InitOCL()
 
 	cl::Program::Sources sources;
 
-	std::string kernel_code =
-		"   void kernel simple_add(global const int* A, global const int* B, global int* C){       "
-		"       C[get_global_id(0)]=A[get_global_id(0)]+B[get_global_id(0)];                 "
-		"   }                                                                               ";
+	std::string kernel_code = GetKernelCode("./Kernel.txt");
 
 	sources.push_back({ kernel_code.c_str(),kernel_code.length() });
 
@@ -277,36 +282,46 @@ void LifeSimulation::InitOCL()
 	}
 
 	// create buffers on the device
-	cl::Buffer buffer_board(context, CL_MEM_READ_WRITE, sizeof(char) * board.size());
-	cl::Buffer buffer_B(context, CL_MEM_READ_WRITE, sizeof(int) * 10);
-	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, sizeof(int) * 10);
-
-	int A[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-	int B[] = { 0, 1, 2, 0, 1, 2, 0, 1, 2, 0 };
+	input = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(char) * board.size());
+	output = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(char) * board.size());
+	rowbuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
+	linebuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
 
 	//create queue to which we will push commands for the device.
-	cl::CommandQueue queue(context, default_device);
+	queue_simulation = cl::CommandQueue(context, default_device);
 
 	// write arrays A and B to the device
-	queue.enqueueWriteBuffer(buffer_board, CL_TRUE, 0, sizeof(int) * 10, A);
-	queue.enqueueWriteBuffer(buffer_B, CL_TRUE, 0, sizeof(int) * 10, B);
+	queue_simulation.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
+	queue_simulation.enqueueWriteBuffer(output, CL_TRUE, 0, sizeof(char) * board.size(), &changes[0]);
+	queue_simulation.enqueueWriteBuffer(rowbuffer, CL_TRUE, 0, sizeof(int), &rows);
+	queue_simulation.enqueueWriteBuffer(linebuffer, CL_TRUE, 0, sizeof(int), &lines);
 
-	cl::Kernel kernel_add=cl::Kernel(program,"simple_add");
-	kernel_add.setArg(0, buffer_board);
-	kernel_add.setArg(1,buffer_B);
-	kernel_add.setArg(2,buffer_C);
-	queue.enqueueNDRangeKernel(kernel_add,cl::NullRange,cl::NDRange(10),cl::NullRange);
-	queue.finish();
+	kernel_simulation = cl::Kernel(program, "simulatelife");
+	kernel_simulation.setArg(0, input);
+	kernel_simulation.setArg(1, rowbuffer);
+	kernel_simulation.setArg(2, linebuffer);
+	kernel_simulation.setArg(3, output);
+}
 
-	int C[10];
-	//read result C from the device to array C
-	queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int) * 10, C);
+string LifeSimulation::GetKernelCode(string inputFilename)
+{
+	string kernelcode;
+	stringstream contentStream;
+	ifstream fileStream(inputFilename);
 
-	std::cout << " result: \n";
-	for (auto i = 0; i<10; i++) {
-		std::cout << C[i] << " ";
+	if (fileStream)
+	{
+		contentStream << fileStream.rdbuf();
+		fileStream.close();
+
+		kernelcode = contentStream.str();
 	}
-	cout << endl;
+	else
+	{
+		cerr << "Kernel " << inputFilename << " not Found!" << endl;
+	}
+
+	return kernelcode;
 }
 
 void LifeSimulation::DebugOutput()

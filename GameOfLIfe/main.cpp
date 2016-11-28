@@ -1,3 +1,5 @@
+
+#define __CL_ENABLE_EXCEPTIONS
 #include "CommandLineParser.h"
 #include <iostream>
 #include "LifeSimulation.h"
