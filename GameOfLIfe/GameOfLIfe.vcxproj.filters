@@ -30,6 +30,9 @@
     <ClCompile Include="TimerClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cltest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LifeSimulation.h">

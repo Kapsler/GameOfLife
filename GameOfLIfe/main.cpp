@@ -6,7 +6,7 @@
 
 using namespace std;
 
-string inputFilename, outputFilename, time1, time2, time3;
+string inputFilename, outputFilename, time1, time2, time3, mode;
 int generations;
 bool measure;
 
@@ -21,6 +21,15 @@ bool handleParameters(int argc, char* argv[])
 	else
 	{
 		cerr << "Parameter --load not found!" << endl;
+		return false;
+
+	}if (input.cmdOptionExists("--mode"))
+	{
+		mode = input.getCmdOption("--mode");
+	}
+	else
+	{
+		cerr << "Parameter --mode not found!" << endl;
 		return false;
 	}
 
@@ -79,8 +88,8 @@ int main(int argc, char* argv[])
 
 	//Run
 	timer->StartTimer();
-	simulation->Run(generations);
-	time2 = timer->GetFormattedDuration("");
+	cout << mode << endl;
+	time2 = simulation->Run(generations, mode);
 
 	//DebugOutput
 	//simulation->DebugOutput();

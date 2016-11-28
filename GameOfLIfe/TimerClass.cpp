@@ -23,7 +23,7 @@ double TimerClass::GetTime() const
 	return roundTime.count();
 }
 
-std::string TimerClass::GetFormattedDuration(std::string text)
+std::string TimerClass::GetFormattedDuration(std::string text) const
 {
 	auto end = high_resolution_clock::now();
 	auto diff = end - startTime;

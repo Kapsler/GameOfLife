@@ -16,7 +16,7 @@ public:
 	void StartTimer();
 
 	double GetTime() const;
-	std::string GetFormattedDuration(std::string text);
+	std::string GetFormattedDuration(std::string text) const;
 
 private:
 	std::chrono::high_resolution_clock::time_point startTime;

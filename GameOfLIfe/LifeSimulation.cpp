@@ -16,44 +16,76 @@ vector<vector<char>>* LifeSimulation::getBoardPtr()
 	return &board;
 }
 
-void LifeSimulation::Run(int generations)
+string LifeSimulation::Run(int generations, std::string mode)
 {
+	string time = "";
 
 	lines = board.size();
 	rows = board[0].size();
 
 	//Initialize helping array
 	changes = new bool*[lines];
-	for (int i = 0; i < lines; i++)
+
+	for (auto i = 0; i < lines; i++)
 	{
 		changes[i] = new bool[rows];
 	}
 
-	for(auto i = 0; i < generations; ++i)
+	if (mode == "seq")
 	{
-		//SimulateLifeIteration();
-		SimulateLifeOMP();
-	}
+		timer.StartTimer();
+		for (auto i = 0; i < generations; ++i)
+		{
+			SimulateLifeIteration();
+		}
+		time = timer.GetFormattedDuration("");
+	} else if(mode == "omp")
+	{
+		timer.StartTimer();
+		for (auto i = 0; i < generations; ++i)
+		{
+			SimulateLifeOMP();
+		}
+		time = timer.GetFormattedDuration("");
+		
+	} else if(mode == "ocl")
+	{
+
+		InitOCL();
+
+		timer.StartTimer();
+
+		for (auto i = 0; i < generations; ++i)
+		{
+			SimulateLifeOCL();
+		}
+		time = timer.GetFormattedDuration("");
+	} else
+	{
+		std::cerr << mode.c_str() << " is not a valid mode!" << endl;
+		exit(0);
+	}	
 
 	//Free helping array
-	for (int i = 0; i < lines; i++)
+	for (auto i = 0; i < lines; i++)
 	{
 		delete[] changes[i];
 	}
 	delete[] changes;
+
+	return time;
 }
 
 void LifeSimulation::SimulateLifeIteration()
 {
-	for (int i = 0; i < lines; i++)
+	for (auto i = 0; i < lines; i++)
 	{
 		fill(changes[i], changes[i]+rows-1, false) ;
 	}
 
-	for (int i = 0; i < lines; ++i)
+	for (auto i = 0; i < lines; ++i)
 	{
-		std::vector<bool> changeline;
-		for (int j = 0; j < rows; ++j)
+		for (auto j = 0; j < rows; ++j)
 		{
 			changes[i][j] = CheckCell(i, j);
 		}
@@ -106,6 +138,34 @@ void LifeSimulation::SimulateLifeOMP()
 		}
 	}
 
+}
+
+void LifeSimulation::SimulateLifeOCL()
+{
+	for (auto i = 0; i < lines; i++)
+	{
+		fill(changes[i], changes[i] + rows - 1, false);
+	}
+
+	for (auto i = 0; i < lines; ++i)
+	{
+		for (auto j = 0; j < rows; ++j)
+		{
+			changes[i][j] = CheckCell(i, j);
+		}
+
+	}
+
+	for (auto i = 0; i < lines; ++i)
+	{
+		for (auto j = 0; j < rows; ++j)
+		{
+			if (changes[i][j])
+			{
+				ToggleCell(i, j);
+			}
+		}
+	}
 }
 
 bool LifeSimulation::CheckCell(const int &line, const int &row) const
@@ -213,6 +273,80 @@ void LifeSimulation::ToggleCell(const int& line, const int& row)
 	{
 		board[line][row] = 'x';
 	}
+}
+
+void LifeSimulation::InitOCL()
+{
+	//get all platforms (drivers)
+	std::vector<cl::Platform> all_platforms;
+	cl::Platform::get(&all_platforms);
+	if (all_platforms.size() == 0) {
+		std::cout << " No platforms found. Check OpenCL installation!\n";
+		exit(1);
+	}
+
+	//TODO Needs device parameter!
+	cl::Platform default_platform = all_platforms[0];
+	std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME>() << endl;
+
+	//get default device of the default platform
+	std::vector<cl::Device> all_devices;
+	default_platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+	if (all_devices.size() == 0) {
+		std::cout << " No devices found. Check OpenCL installation!\n";
+		exit(1);
+	}
+	cl::Device default_device = all_devices[0];
+	std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>() << "\n";
+
+	cl::Context context({ default_device });
+
+	cl::Program::Sources sources;
+
+	std::string kernel_code =
+		"   void kernel simple_add(global const int* A, global const int* B, global int* C){       "
+		"       C[get_global_id(0)]=A[get_global_id(0)]+B[get_global_id(0)];                 "
+		"   }                                                                               ";
+
+	sources.push_back({ kernel_code.c_str(),kernel_code.length() });
+
+	cl::Program program(context, sources);
+	if (program.build({ default_device }) != CL_SUCCESS) {
+		std::cout << " Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(default_device) << endl;
+		exit(1);
+	}
+
+	// create buffers on the device
+	cl::Buffer buffer_board(context, CL_MEM_READ_WRITE, sizeof(char) * board.size());
+	cl::Buffer buffer_B(context, CL_MEM_READ_WRITE, sizeof(int) * 10);
+	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, sizeof(int) * 10);
+
+	int A[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	int B[] = { 0, 1, 2, 0, 1, 2, 0, 1, 2, 0 };
+
+	//create queue to which we will push commands for the device.
+	cl::CommandQueue queue(context, default_device);
+
+	// write arrays A and B to the device
+	queue.enqueueWriteBuffer(buffer_board, CL_TRUE, 0, sizeof(int) * 10, A);
+	queue.enqueueWriteBuffer(buffer_B, CL_TRUE, 0, sizeof(int) * 10, B);
+
+	cl::Kernel kernel_add=cl::Kernel(program,"simple_add");
+	kernel_add.setArg(0, buffer_board);
+	kernel_add.setArg(1,buffer_B);
+	kernel_add.setArg(2,buffer_C);
+	queue.enqueueNDRangeKernel(kernel_add,cl::NullRange,cl::NDRange(10),cl::NullRange);
+	queue.finish();
+
+	int C[10];
+	//read result C from the device to array C
+	queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int) * 10, C);
+
+	std::cout << " result: \n";
+	for (auto i = 0; i<10; i++) {
+		std::cout << C[i] << " ";
+	}
+	cout << endl;
 }
 
 void LifeSimulation::DebugOutput()
