@@ -1,8 +1,11 @@
 #include "ReaderWriter.h"
 
 ReaderWriter::ReaderWriter(string inputFilename,
-	vector<vector<char>> *board)
+	vector<char> *board, int* linesptr, int* rowsptr)
 {
+	lines = linesptr;
+	rows = rowsptr;
+
 	readInputFile(inputFilename);
 	extractValuesFromContent(board);
 }
@@ -11,22 +14,27 @@ ReaderWriter::~ReaderWriter()
 {
 }
 
-void ReaderWriter::WriteToFile(string outputFilename, vector<vector<char>> *board)
+void ReaderWriter::WriteToFile(string outputFilename, vector<char> *board) const
 {
 	ofstream fileStream(outputFilename);
 
 	if (fileStream)
 	{
 		//Write
-		fileStream << (*board)[0].size() << ',' << board->size() << endl;
+		fileStream << *rows << ',' << *lines << endl;
 
+		int counter = 0;
 		for(const auto &i : *board)
 		{
-			for(const auto &j : i)
+			fileStream << i;
+			counter++;
+
+			if (counter >= *rows)
 			{
-				fileStream << j;
+				fileStream << endl;
+				counter = 0;
 			}
-			fileStream << endl;
+				
 		}
 
 		fileStream.close();
@@ -38,40 +46,30 @@ void ReaderWriter::WriteToFile(string outputFilename, vector<vector<char>> *boar
 	}
 }
 
-void ReaderWriter::extractValuesFromContent(vector<vector<char>> *board)
+void ReaderWriter::extractValuesFromContent(vector<char> *board) const
 {
 	char comma;
 
 	stringstream contentStream(content);
-	contentStream >> lineLength;
+	contentStream >> *rows;
 	contentStream >> comma;
-	contentStream >> numberOfLines;
+	contentStream >> *lines;
 
 	char buffer;
 	buffer = contentStream.get(); // newline
 	buffer = contentStream.get();
 
+	board->reserve(*rows * *lines);
+
 	while(buffer != EOF)
 	{
-		if(buffer == '.')
+		if(buffer != '\n')
 		{
-			line.push_back('.');
-		} else if(buffer == 'x')
-		{
-			line.push_back('x');
-		} else if(buffer == '\n')
-		{
-			board->push_back(line);
-			line.clear();
+			board->push_back(buffer);
 		}
 
 		buffer = contentStream.get();
 	}
-
-	//cout << numberOfLines << endl;
-	//cout << lineLength << endl;
-	//cout << board->size() << endl;
-	//cout << board[0].size() << endl;
 }
 
 
@@ -90,6 +88,6 @@ void ReaderWriter::readInputFile(string inputFilename)
 	{
 		cerr << "Inputfile " << inputFilename << " not Found!" << endl;
 	}
-	
+
 }
 

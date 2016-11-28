@@ -11,25 +11,25 @@ LifeSimulation::~LifeSimulation()
 {
 }
 
-vector<vector<char>>* LifeSimulation::getBoardPtr()
+vector<char>* LifeSimulation::getBoardPtr()
 {
 	return &board;
+}
+
+int* LifeSimulation::GetLinesPtr()
+{
+	return &lines;
+}
+
+int* LifeSimulation::GetRowsPtr()
+{	
+	return &rows;
 }
 
 string LifeSimulation::Run(int generations, std::string mode)
 {
 	string time = "";
-
-	lines = board.size();
-	rows = board[0].size();
-
-	//Initialize helping array
-	changes = new bool*[lines];
-
-	for (auto i = 0; i < lines; i++)
-	{
-		changes[i] = new bool[rows];
-	}
+	changes = new bool[board.size()];
 
 	if (mode == "seq")
 	{
@@ -50,7 +50,6 @@ string LifeSimulation::Run(int generations, std::string mode)
 		
 	} else if(mode == "ocl")
 	{
-
 		InitOCL();
 
 		timer.StartTimer();
@@ -66,61 +65,23 @@ string LifeSimulation::Run(int generations, std::string mode)
 		exit(0);
 	}	
 
-	//Free helping array
-	for (auto i = 0; i < lines; i++)
-	{
-		delete[] changes[i];
-	}
 	delete[] changes;
 
 	return time;
 }
 
-void LifeSimulation::SimulateLifeIteration()
-{
-	for (auto i = 0; i < lines; i++)
-	{
-		fill(changes[i], changes[i]+rows-1, false) ;
-	}
-
-	for (auto i = 0; i < lines; ++i)
-	{
-		for (auto j = 0; j < rows; ++j)
-		{
-			changes[i][j] = CheckCell(i, j);
-		}
-		
-	}
-
-	for(auto i = 0; i < lines; ++i)
-	{
-		for(auto j = 0; j < rows; ++j)
-		{
-			if(changes[i][j])
-			{
-				ToggleCell(i, j);
-			}
-		}
-	}
-
-}
-
 void LifeSimulation::SimulateLifeOMP()
 {
+	fill(changes, changes + sizeof(changes), false);
+
 	#pragma omp parallel num_threads(4)
 	{
 		#pragma omp for
-		for (auto i = 0; i < lines; i++)
-		{
-			fill(changes[i], changes[i] + rows - 1, false);
-		}
-
-		#pragma omp for
 		for (auto i = 0; i < lines; ++i)
 		{
 			for (auto j = 0; j < rows; ++j)
 			{
-				changes[i][j] = CheckCell(i, j);
+				changes[i * rows + j] = CheckCell(i, j);
 			}
 
 		}
@@ -130,28 +91,27 @@ void LifeSimulation::SimulateLifeOMP()
 		{
 			for (auto j = 0; j < rows; ++j)
 			{
-				if (changes[i][j])
+				if (changes[i * rows + j])
 				{
 					ToggleCell(i, j);
 				}
 			}
 		}
-	}
 
+	}
+	
 }
 
-void LifeSimulation::SimulateLifeOCL()
+void LifeSimulation::SimulateLifeIteration()
 {
-	for (auto i = 0; i < lines; i++)
-	{
-		fill(changes[i], changes[i] + rows - 1, false);
-	}
+
+	fill(changes, changes + sizeof(changes), false);
 
 	for (auto i = 0; i < lines; ++i)
 	{
 		for (auto j = 0; j < rows; ++j)
 		{
-			changes[i][j] = CheckCell(i, j);
+			changes[i * rows + j] = CheckCell(i, j);
 		}
 
 	}
@@ -160,7 +120,7 @@ void LifeSimulation::SimulateLifeOCL()
 	{
 		for (auto j = 0; j < rows; ++j)
 		{
-			if (changes[i][j])
+			if (changes[i * rows + j])
 			{
 				ToggleCell(i, j);
 			}
@@ -168,12 +128,17 @@ void LifeSimulation::SimulateLifeOCL()
 	}
 }
 
-bool LifeSimulation::CheckCell(const int &line, const int &row) const
+void LifeSimulation::SimulateLifeOCL()
+{
+	
+}
+
+bool LifeSimulation::CheckCell(const int& line, const int& row) const
 {
 	const int neighbors = CountNeighbors(line, row);
 
 	//Alive
-	if (board[line][row] == 'x')
+	if (board[line * rows + row] == 'x')
 	{
 		if (neighbors >= 4 || neighbors <= 1)
 		{
@@ -192,7 +157,7 @@ bool LifeSimulation::CheckCell(const int &line, const int &row) const
 	return false;
 }
 
-int LifeSimulation::CountNeighbors(const int &line, const int &row) const
+int LifeSimulation::CountNeighbors(const int& line, const int& row) const
 {
 	int neighborcount = 0;
 	int lineafter = line + 1;
@@ -201,22 +166,22 @@ int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 	int rowbefore = row - 1;
 
 
-	if(rowafter >= rows)
+	if (rowafter >= rows)
 	{
 		//rowafter = mod(row + 1, rows);
 		rowafter = 0;
 	}
-	if(rowbefore < 0)
+	if (rowbefore < 0)
 	{
 		//rowbefore = mod(row - 1, rows);
 		rowbefore = rows - 1;
 	}
-	if(lineafter >= lines)
+	if (lineafter >= lines)
 	{
 		//lineafter = mod(line + 1, lines);
 		lineafter = 0;
 	}
-	if(linebefore < 0)
+	if (linebefore < 0)
 	{
 		//linebefore = mod(line - 1, lines);
 		linebefore = lines - 1;
@@ -225,53 +190,48 @@ int LifeSimulation::CountNeighbors(const int &line, const int &row) const
 	//X__
 	//___
 	//___
-	if (board[linebefore][rowbefore] == 'x') neighborcount++;
+	if (board[linebefore * rows + rowbefore] == 'x') neighborcount++;
 	//_X_
 	//___
 	//___
-	if (board[linebefore][row] == 'x') neighborcount++;
+	if (board[linebefore * rows + row] == 'x') neighborcount++;
 	//__X
 	//___
 	//___
-	if (board[linebefore][rowafter] == 'x') neighborcount++;
+	if (board[linebefore * rows + rowafter] == 'x') neighborcount++;
 	//___
 	//X__
 	//___
-	if (board[line][rowbefore] == 'x') neighborcount++;
+	if (board[line * rows + rowbefore] == 'x') neighborcount++;
 	//___
 	//__X
 	//___
-	if (board[line][rowafter] == 'x') neighborcount++;
+	if (board[line * rows + rowafter] == 'x') neighborcount++;
 	//___
 	//___
 	//X__
-	if (board[lineafter][rowbefore] == 'x') neighborcount++;
+	if (board[lineafter * rows + rowbefore] == 'x') neighborcount++;
 	//___
 	//___
 	//_X_
-	if (board[lineafter][row] == 'x') neighborcount++;
+	if (board[lineafter * rows + row] == 'x') neighborcount++;
 	//___
 	//___
 	//__X
-	if (board[lineafter][rowafter] == 'x') neighborcount++;
+	if (board[lineafter * rows + rowafter] == 'x') neighborcount++;
 
 	return neighborcount;
 }
 
-int inline LifeSimulation::mod(int first, const int& second) const
-{
-	//return (first%second + second) % second;
-	return ((first %= second) < 0) ? first + second : first;
-}
-
 void LifeSimulation::ToggleCell(const int& line, const int& row)
 {
-	if (board[line][row] == 'x')
+	if (board[line * rows + row] == 'x')
 	{
-		board[line][row] = '.';
-	} else
+		board[line * rows + row] = '.';
+	}
+	else
 	{
-		board[line][row] = 'x';
+		board[line * rows + row] = 'x';
 	}
 }
 
@@ -351,13 +311,20 @@ void LifeSimulation::InitOCL()
 
 void LifeSimulation::DebugOutput()
 {
+	int counter = 0;
+
 	for(const auto &i : board)
 	{
-		for(const auto & j : i)
-		{
-			std::cout << j;
-		}
+		std::cout << i;
+		
+		counter++;
 
-		std::cout << endl;
+		if(counter >= rows)
+		{
+			counter = 0;
+			cout << endl;
+		}
 	}
+
+	std::cout << endl;
 }

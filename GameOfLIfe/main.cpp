@@ -79,20 +79,12 @@ int main(int argc, char* argv[])
 
 	//Read Input
 	timer->StartTimer();
-	ReaderWriter* readerwriter = new ReaderWriter(inputFilename, simulation->getBoardPtr());
+	ReaderWriter* readerwriter = new ReaderWriter(inputFilename, simulation->getBoardPtr(), simulation->GetLinesPtr(), simulation->GetRowsPtr());
 	time1 = timer->GetFormattedDuration("");
 
-
-	//DebugOutput
-	//simulation->DebugOutput();
-
 	//Run
-	timer->StartTimer();
 	cout << mode << endl;
 	time2 = simulation->Run(generations, mode);
-
-	//DebugOutput
-	//simulation->DebugOutput();
 
 	//Output
 	timer->StartTimer();
