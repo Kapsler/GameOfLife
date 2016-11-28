@@ -59,6 +59,8 @@ void ReaderWriter::extractValuesFromContent(vector<char> *board) const
 	buffer = contentStream.get(); // newline
 	buffer = contentStream.get();
 
+	board->reserve(*rows * *lines);
+
 	while(buffer != EOF)
 	{
 		if(buffer != '\n')

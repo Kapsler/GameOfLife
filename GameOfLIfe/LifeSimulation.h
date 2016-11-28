@@ -14,7 +14,7 @@ public:
 	int* GetLinesPtr();
 	int* GetRowsPtr();
 
-	void Run(int generations);
+	void Run(int generations, string mode);
 	void DebugOutput();
 
 	//1D
@@ -25,7 +25,7 @@ private:
 	int inline CountNeighbors(const int &line, const int &row) const;
 	void inline ToggleCell(const int &line, const int &row);
 
-	vector<char> board1d;
+	vector<char> board;
 	int lines, rows;
-	bool* changes1d;
+	bool* changes;
 };

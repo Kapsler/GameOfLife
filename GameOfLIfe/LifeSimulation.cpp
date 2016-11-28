@@ -4,7 +4,7 @@ LifeSimulation::LifeSimulation()
 {
 	lines = 0;
 	rows = 0;
-	//changes = nullptr;
+	changes = nullptr;
 }
 
 LifeSimulation::~LifeSimulation()
@@ -13,7 +13,7 @@ LifeSimulation::~LifeSimulation()
 
 vector<char>* LifeSimulation::getBoardPtr()
 {
-	return &board1d;
+	return &board;
 }
 
 int* LifeSimulation::GetLinesPtr()
@@ -26,16 +26,16 @@ int* LifeSimulation::GetRowsPtr()
 	return &rows;
 }
 
-void LifeSimulation::Run(int generations)
+void LifeSimulation::Run(int generations, string mode)
 {
-	changes1d = new bool[board1d.size()];
+	changes = new bool[board.size()];
 
 	for(auto i = 0; i < generations; ++i)
 	{
 		SimulateLifeIteration();
 	}
 
-	delete[] changes1d;
+	delete[] changes;
 
   }
 
@@ -107,13 +107,13 @@ void LifeSimulation::Run(int generations)
 void LifeSimulation::SimulateLifeIteration()
 {
 
-	fill(changes1d, changes1d + sizeof(changes1d), false);
+	fill(changes, changes + sizeof(changes), false);
 
 	for (auto i = 0; i < lines; ++i)
 	{
 		for (auto j = 0; j < rows; ++j)
 		{
-			changes1d[i * rows + j] = CheckCell(i, j);
+			changes[i * rows + j] = CheckCell(i, j);
 		}
 
 	}
@@ -122,43 +122,20 @@ void LifeSimulation::SimulateLifeIteration()
 	{
 		for (auto j = 0; j < rows; ++j)
 		{
-			if (changes1d[i * rows + j])
+			if (changes[i * rows + j])
 			{
 				ToggleCell(i, j);
 			}
 		}
 	}
 }
-//bool LifeSimulation::CheckCell(const int &line, const int &row) const
-//{
-//	const int neighbors = CountNeighbors(line, row);
-//
-//	//Alive
-//	if (board[line][row] == 'x')
-//	{
-//		if (neighbors >= 4 || neighbors <= 1)
-//		{
-//			return true;
-//		}
-//	}
-//	//Dead
-//	else
-//	{
-//		if (neighbors == 3)
-//		{
-//			return true;
-//		}
-//	}
-//
-//	return false;
-//}
 
 bool LifeSimulation::CheckCell(const int& line, const int& row) const
 {
 	const int neighbors = CountNeighbors(line, row);
 
 	//Alive
-	if (board1d[line * rows + row] == 'x')
+	if (board[line * rows + row] == 'x')
 	{
 		if (neighbors >= 4 || neighbors <= 1)
 		{
@@ -210,48 +187,48 @@ int LifeSimulation::CountNeighbors(const int& line, const int& row) const
 	//X__
 	//___
 	//___
-	if (board1d[linebefore * rows + rowbefore] == 'x') neighborcount++;
+	if (board[linebefore * rows + rowbefore] == 'x') neighborcount++;
 	//_X_
 	//___
 	//___
-	if (board1d[linebefore * rows + row] == 'x') neighborcount++;
+	if (board[linebefore * rows + row] == 'x') neighborcount++;
 	//__X
 	//___
 	//___
-	if (board1d[linebefore * rows + rowafter] == 'x') neighborcount++;
+	if (board[linebefore * rows + rowafter] == 'x') neighborcount++;
 	//___
 	//X__
 	//___
-	if (board1d[line * rows + rowbefore] == 'x') neighborcount++;
+	if (board[line * rows + rowbefore] == 'x') neighborcount++;
 	//___
 	//__X
 	//___
-	if (board1d[line * rows + rowafter] == 'x') neighborcount++;
+	if (board[line * rows + rowafter] == 'x') neighborcount++;
 	//___
 	//___
 	//X__
-	if (board1d[lineafter * rows + rowbefore] == 'x') neighborcount++;
+	if (board[lineafter * rows + rowbefore] == 'x') neighborcount++;
 	//___
 	//___
 	//_X_
-	if (board1d[lineafter * rows + row] == 'x') neighborcount++;
+	if (board[lineafter * rows + row] == 'x') neighborcount++;
 	//___
 	//___
 	//__X
-	if (board1d[lineafter * rows + rowafter] == 'x') neighborcount++;
+	if (board[lineafter * rows + rowafter] == 'x') neighborcount++;
 
 	return neighborcount;
 }
 
 void LifeSimulation::ToggleCell(const int& line, const int& row)
 {
-	if (board1d[line * rows + row] == 'x')
+	if (board[line * rows + row] == 'x')
 	{
-		board1d[line * rows + row] = '.';
+		board[line * rows + row] = '.';
 	}
 	else
 	{
-		board1d[line * rows + row] = 'x';
+		board[line * rows + row] = 'x';
 	}
 }
 
@@ -259,7 +236,7 @@ void LifeSimulation::DebugOutput()
 {
 	int counter = 0;
 
-	for(const auto &i : board1d)
+	for(const auto &i : board)
 	{
 		std::cout << i;
 		

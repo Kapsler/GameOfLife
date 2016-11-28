@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 
 	//Run
 	timer->StartTimer();
-	simulation->Run(generations);
+	simulation->Run(generations, "ocl");
 	time2 = timer->GetFormattedDuration("");
 
 	//Output
