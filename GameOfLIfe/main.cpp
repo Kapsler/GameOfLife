@@ -85,7 +85,6 @@ int main(int argc, char* argv[])
 	time1 = timer->GetFormattedDuration("");
 
 	//Run
-	cout << mode << endl;
 	time2 = simulation->Run(generations, mode);
 
 	//Output

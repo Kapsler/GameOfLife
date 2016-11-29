@@ -2,7 +2,7 @@
 SET inPath=in
 SET resultPath=result
 SET outPath=out
-SET testmode=omp
+SET testmode=ocl
 echo.--
 GOL.exe --load %inPath%/random250_in.gol --generations 250 --save %resultPath%/random250_result.gol --measure --mode %testmode% >> log.txt
 echo.

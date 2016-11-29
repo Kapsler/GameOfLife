@@ -38,7 +38,10 @@ private:
 	int lines, rows;
 	char* changes;
 
-	cl::Buffer input, output, rowbuffer, linebuffer;
+	cl::Buffer input, output, linebuffer, rowbuffer;
 	cl::Kernel kernel_simulation;
 	cl::CommandQueue queue_simulation;
+	cl::NDRange global, local, offset;
+
+	int inline pow2roundup(int x);
 };

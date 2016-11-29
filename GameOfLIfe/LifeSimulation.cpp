@@ -51,18 +51,17 @@ string LifeSimulation::Run(int generations, std::string mode)
 	} else if(mode == "ocl")
 	{
 
-		timer.StartTimer();
 		InitOCL();
 
+		timer.StartTimer();
 		for (auto i = 0; i < generations; ++i)
 		{
 			SimulateLifeOCL();
 		}
-
+		time = timer.GetFormattedDuration("");
 		queue_simulation.enqueueReadBuffer(output, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
 		queue_simulation.finish();
 
-		time = timer.GetFormattedDuration("");
 	} else
 	{
 		std::cerr << mode.c_str() << " is not a valid mode!" << endl;
@@ -126,16 +125,9 @@ void LifeSimulation::SimulateLifeIteration()
 
 void LifeSimulation::SimulateLifeOCL()
 {
-	if(queue_simulation.enqueueNDRangeKernel(kernel_simulation, cl::NullRange, cl::NDRange(lines, rows), cl::NullRange) != CL_SUCCESS)
-	{
-		cout << "ERROR!" << endl;
-	};
+	queue_simulation.enqueueNDRangeKernel(kernel_simulation, offset, global, local);
 	queue_simulation.enqueueCopyBuffer(output, input, 0, 0, sizeof(char)*board.size());
-	//queue_simulation.enqueueReadBuffer(output, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
-	//queue_simulation.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
 	queue_simulation.finish();
-	//std::swap(input, output);
-
 }
 
 char LifeSimulation::CheckCell(const int& line, const int& row) const
@@ -253,10 +245,10 @@ void LifeSimulation::InitOCL()
 		exit(1);
 	}
 
-	//TODO Needs device parameter!
-	cl::Platform default_platform = all_platforms[1];
-	std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME>() << endl;
+	cl::Platform default_platform = all_platforms[0];
+	//std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME>() << endl;
 
+	//TODO Needs device parameter!
 	//get default device of the default platform
 	std::vector<cl::Device> all_devices;
 	default_platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
@@ -265,7 +257,9 @@ void LifeSimulation::InitOCL()
 		exit(1);
 	}
 	cl::Device default_device = all_devices[0];
-	std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>() << "\n";
+//	std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>() << "\n";
+
+	int maxgroupsize = 	default_device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
 
 	cl::Context context({ default_device });
 
@@ -284,23 +278,31 @@ void LifeSimulation::InitOCL()
 	// create buffers on the device
 	input = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(char) * board.size());
 	output = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(char) * board.size());
-	rowbuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
 	linebuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
+	rowbuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
 
 	//create queue to which we will push commands for the device.
 	queue_simulation = cl::CommandQueue(context, default_device);
 
 	// write arrays A and B to the device
 	queue_simulation.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(char) * board.size(), &board[0]);
-	queue_simulation.enqueueWriteBuffer(output, CL_TRUE, 0, sizeof(char) * board.size(), &changes[0]);
-	queue_simulation.enqueueWriteBuffer(rowbuffer, CL_TRUE, 0, sizeof(int), &rows);
 	queue_simulation.enqueueWriteBuffer(linebuffer, CL_TRUE, 0, sizeof(int), &lines);
+	queue_simulation.enqueueWriteBuffer(rowbuffer, CL_TRUE, 0, sizeof(int), &rows);
 
 	kernel_simulation = cl::Kernel(program, "simulatelife");
 	kernel_simulation.setArg(0, input);
-	kernel_simulation.setArg(1, rowbuffer);
+	kernel_simulation.setArg(1, output);
 	kernel_simulation.setArg(2, linebuffer);
-	kernel_simulation.setArg(3, output);
+	kernel_simulation.setArg(3, rowbuffer);
+
+	//Find ranges
+	int pow2linerange = pow2roundup(lines);
+	int pow2rowrange = pow2roundup(rows);
+
+	global = cl::NDRange(pow2rowrange, pow2linerange);
+
+	local = cl::NDRange(maxgroupsize, 1);
+	offset = cl::NullRange;
 }
 
 string LifeSimulation::GetKernelCode(string inputFilename)
@@ -322,6 +324,19 @@ string LifeSimulation::GetKernelCode(string inputFilename)
 	}
 
 	return kernelcode;
+}
+
+int LifeSimulation::pow2roundup(int x)
+{
+	if (x < 0)
+		return 0;
+	--x;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return x + 1;
 }
 
 void LifeSimulation::DebugOutput()

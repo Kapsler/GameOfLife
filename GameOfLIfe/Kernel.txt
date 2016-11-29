@@ -1,16 +1,18 @@
-void kernel simulatelife(global char* input, global const int* totalrows, global const int* totallines, global char* output){
+void kernel simulatelife(global char* input, global char* output, global const int* totallines, global const int* totalrows){
 	
-	int line = get_global_id(0);
-	int row = get_global_id(1);
-	int rows = *totalrows;
+	int line = get_global_id(1);
+	int row = get_global_id(0);
 	int lines = *totallines;
+	int rows = *totalrows;
 
+	if(line >= lines) return;
+	if(row >= rows) return;
+	
 	int neighborcount = 0;
 	int lineafter = line + 1;
 	int linebefore = line - 1;
 	int rowafter = row + 1;
 	int rowbefore = row - 1;
-
 
 	if (rowafter >= rows)
 	{
@@ -69,9 +71,11 @@ void kernel simulatelife(global char* input, global const int* totalrows, global
 		if (neighborcount >= 4 || neighborcount <= 1)
 		{
 			output[line * rows + row] = '.';
+		} else {
+			output[line * rows + row] = 'x';
 		}
 
-		output[line * rows + row] = 'x';
+		
 	}
 	//Dead
 	else
@@ -79,8 +83,8 @@ void kernel simulatelife(global char* input, global const int* totalrows, global
 		if (neighborcount == 3)
 		{
 			output[line * rows + row] = 'x';
+		} else {
+			output[line * rows + row] = '.';
 		}
-
-		output[line * rows + row] = '.';
 	}
 }
