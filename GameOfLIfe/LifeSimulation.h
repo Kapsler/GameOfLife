@@ -17,20 +17,18 @@ public:
 	int* GetLinesPtr();
 	int* GetRowsPtr();
 
-	string Run(int generations, string mode);
-	void SimulateLifeOMP();
+	string Run(int generations, string mode, int threadnum, string devicetype, int devicenum, int platformnum);
+	void SimulateLifeIteration();
+	void SimulateLifeOMP(int threadnum);
 	void SimulateLifeOCL();
 	void DebugOutput();
 
-	//1D
-	void SimulateLifeIteration();
-	char CheckCell(const int &line, const int &row) const;
 private:
-	//1D
+	char CheckCell(const int &line, const int &row) const;
 	int inline CountNeighbors(const int &line, const int &row) const;
 	void inline ToggleCell(const int &line, const int &row);
 
-	void InitOCL();
+	void InitOCL(string devicetype, int devicenum, int platformnum);
 	string GetKernelCode(string inputFilename);
 
 	TimerClass timer;

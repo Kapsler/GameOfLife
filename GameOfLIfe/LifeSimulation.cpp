@@ -26,7 +26,7 @@ int* LifeSimulation::GetRowsPtr()
 	return &rows;
 }
 
-string LifeSimulation::Run(int generations, std::string mode)
+string LifeSimulation::Run(int generations, std::string mode, int threadnum, string devicetype, int devicenum, int platformnum)
 {
 	string time = "";
 	changes = new char[board.size()];
@@ -44,14 +44,14 @@ string LifeSimulation::Run(int generations, std::string mode)
 		timer.StartTimer();
 		for (auto i = 0; i < generations; ++i)
 		{
-			SimulateLifeOMP();
+			SimulateLifeOMP(threadnum);
 		}
 		time = timer.GetFormattedDuration("");
 		
 	} else if(mode == "ocl")
 	{
 
-		InitOCL();
+		InitOCL(devicetype, devicenum, platformnum);
 
 		timer.StartTimer();
 		for (auto i = 0; i < generations; ++i)
@@ -73,9 +73,9 @@ string LifeSimulation::Run(int generations, std::string mode)
 	return time;
 }
 
-void LifeSimulation::SimulateLifeOMP()
+void LifeSimulation::SimulateLifeOMP(int threadnum)
 {
-	#pragma omp parallel num_threads(4)
+	#pragma omp parallel num_threads(threadnum)
 	{
 		#pragma omp for
 		for (auto i = 0; i < lines; ++i)
@@ -235,29 +235,62 @@ void LifeSimulation::ToggleCell(const int& line, const int& row)
 	}
 }
 
-void LifeSimulation::InitOCL()
+void LifeSimulation::InitOCL(string devicetype, int devicenum, int platformnum)
 {
 	//get all platforms (drivers)
 	std::vector<cl::Platform> all_platforms;
+	std::vector<cl::Device> all_devices;
+
 	cl::Platform::get(&all_platforms);
 	if (all_platforms.size() == 0) {
 		std::cout << " No platforms found. Check OpenCL installation!\n";
 		exit(1);
 	}
 
-	cl::Platform default_platform = all_platforms[0];
-	//std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME>() << endl;
 
-	//TODO Needs device parameter!
-	//get default device of the default platform
-	std::vector<cl::Device> all_devices;
-	default_platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
-	if (all_devices.size() == 0) {
-		std::cout << " No devices found. Check OpenCL installation!\n";
-		exit(1);
+	cl::Platform default_platform;
+	cl::Device default_device;
+	unsigned int getdevicetype = CL_DEVICE_TYPE_ALL;;
+	if(devicetype == "cpu")
+	{
+		getdevicetype = CL_DEVICE_TYPE_CPU;
+
+	} else if(devicetype == "gpu")
+	{
+		getdevicetype = CL_DEVICE_TYPE_GPU;
+
+	} 
+	
+	if(getdevicetype != CL_DEVICE_TYPE_ALL)
+	{
+		for(int i = 0; i < all_platforms.size(); ++i)
+		{
+			default_platform = all_platforms[i];
+
+			default_platform.getDevices(getdevicetype, &all_devices);
+			if (all_devices.size() == 0) {
+				continue;
+			}
+
+			default_device = all_devices[0];
+		}
 	}
-	cl::Device default_device = all_devices[0];
-//	std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>() << "\n";
+	else
+	{
+		default_platform = all_platforms[platformnum];
+
+		default_platform.getDevices(getdevicetype, &all_devices);
+		if (all_devices.size() == 0) {
+			std::cout << " No devices found. Check OpenCL installation!\n";
+			exit(1);
+		}
+
+		default_device = all_devices[devicenum];
+	
+
+	}	
+	//std::cout << "Using device: " << default_platform.getInfo<CL_PLATFORM_NAME>() << "\n";	
+	//std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>() << "\n";
 
 	int maxgroupsize = 	default_device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
 
